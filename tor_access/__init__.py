@@ -85,6 +85,9 @@ def check_access(handler, roleneed):
     
     if isinstance(roleneed,MasterRoleNeed):
         return
+    
+    if not roleneed:
+	raise HTTPError(403)
 
     checkname = handler.__checkname__
     if handler.__needcheck__.get('url',None):

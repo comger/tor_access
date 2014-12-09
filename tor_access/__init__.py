@@ -11,10 +11,12 @@
         c. 支持数据存储级的角色管理
 """
 import tornado
+from tornado.web import RequestHandler
 from tornado.httpclient import HTTPError
-from kpages import get_members
+from inspect import getmembers
 
-ACL = {}
+CATEGORY = "默认分组"
+ACL = dict()
 
 class ACLNode(object):
     """
@@ -35,6 +37,24 @@ class ACLGroupNode(ACLNode):
     def append(self, handler):
         self.handlers.append(handler)
 
+    
+    def fetch_module(self, module):
+        member_filter = lambda h: isinstance(h, type) and issubclass(h, RequestHandler)
+        ACL[CATEGORY][self.name] = self
+        for k, v in getmembers(module, member_filter):
+            self.append(v)
+            v.__checkname__ = self.name
+            v.check_access = check_access
+            v.__needcheck__ = {'url':True}
+    
+    def fetch_handlers(self,*handlers):
+        ACL[CATEGORY][self.name] = self
+        for v in handlers:
+            self.append(v)
+            v.__checkname__ = self.name
+            v.check_access = check_access
+            v.__needcheck__ = {'url':True}
+            
 
 class RoleNeed(object):
     """
@@ -51,7 +71,7 @@ class RoleNeed(object):
         def actual(handler):
             assert(issubclass(handler, tornado.web.RequestHandler))
             handler.__needcheck__ = kwargs
-            category = kwargs.get('category','默认分组')
+            category = kwargs.get('category',CATEGORY)
             if not ACL.get(category,None):ACL[category] = {}
 
 
@@ -116,10 +136,9 @@ def needcheck(**kwargs):
         #import pdb;pdb.set_trace()
         assert(issubclass(handler, tornado.web.RequestHandler))
         handler.__needcheck__ = kwargs
-        category = kwargs.get('category','默认分组')
+        category = kwargs.get('category',CATEGORY)
         if not ACL.get(category,None):ACL[category] = {}
-
-
+        
         groupnode = kwargs.get('group', None)
 
         if groupnode:

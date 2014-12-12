@@ -18,6 +18,9 @@ from inspect import getmembers
 CATEGORY = "默认分组"
 ACL = dict()
 
+#节点过滤方法
+member_filter = lambda h: isinstance(h, type) and issubclass(h, RequestHandler)
+
 class ACLNode(object):
     """
         权限节点
@@ -39,7 +42,6 @@ class ACLGroupNode(ACLNode):
 
     
     def fetch_module(self, module):
-        member_filter = lambda h: isinstance(h, type) and issubclass(h, RequestHandler)
         ACL[CATEGORY][self.name] = self
         for k, v in getmembers(module, member_filter):
             self.append(v)
@@ -50,6 +52,8 @@ class ACLGroupNode(ACLNode):
     def fetch_handlers(self,*handlers):
         ACL[CATEGORY][self.name] = self
         for v in handlers:
+            if not member_filter(v): continue
+
             self.append(v)
             v.__checkname__ = self.name
             v.check_access = check_access

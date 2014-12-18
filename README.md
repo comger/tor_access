@@ -30,7 +30,7 @@ class UserInfoHandler(tornado.web.RequestHandler):
 		pass
 
 
-
+OR: aclgroup.fetch_handlers(UserHandler,UserInfoHandler) to add access node 
 ```
 
 

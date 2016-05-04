@@ -20,8 +20,11 @@ aclgroup = tor_access.ACLGroupNode('userdemo',u'系统管理')
 class AccessHandler(tornado.web.RequestHandler):
     def prepare(self):
         mrn = tor_access.MasterRoleNeed()
-        rn = tor_access.RoleNeed('abcrole',intro=u'普通角色',nodes=set(['restful.index.IndexHandler','userdemo']))
-        self.check_access(mrn)
+        ctx_vals = dict(pid=['A','B'],mid=('MA','Mb'))
+        rn = tor_access.RoleNeed('abcrole',intro=u'普通角色',
+            nodes=set(['restful.index.IndexHandler','userdemo']),
+            ctx_vals=ctx_vals)
+        self.check_access(rn)
 
 
 @tor_access.needcheck(url=True, group=aclgroup)
@@ -32,7 +35,7 @@ class IndexHandler(AccessHandler):
         self.write('hello world')
 
 
-@tor_access.needcheck(url=True, group=aclgroup)
+@tor_access.needcheck(url=True, group=aclgroup, ctx_param='pid,mid')
 @url(r"/abc")
 class ABCHandler(AccessHandler):
     def get(self):

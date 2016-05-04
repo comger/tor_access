@@ -64,7 +64,7 @@ class RoleNeed(object):
     """
         角色类型
     """
-    def __init__(self, name, intro=None, nodes=set(), ctx_vals=set()):
+    def __init__(self, name, intro=None, nodes=set(), ctx_vals={}):
         self.name = name
         self.intro = intro or name
 
@@ -118,11 +118,12 @@ def check_access(handler, roleneed):
         if not checkname in roleneed.nodes:
             raise HTTPError(403)
 
-    ctx_param = handler.__needcheck__.get('ctx_param',None)
-    if ctx_param:
-        ctx_val = handler.get_argument(ctx_param, handler.path_kwargs.get(ctx_param,None))
-        if not ctx_val in roleneed.ctx_vals:
-            raise HTTPError(403)
+    ctx_params = handler.__needcheck__.get('ctx_param',None)
+    if ctx_params:
+        for ctx_param in ctx_params.split(','):
+            ctx_val = handler.get_argument(ctx_param, handler.path_kwargs.get(ctx_param,None))
+            if not ctx_val in roleneed.ctx_vals.get(ctx_param,()):
+                raise HTTPError(403)
 
 
 def needcheck(**kwargs):
@@ -132,9 +133,10 @@ def needcheck(**kwargs):
         url : 当url=True 时, 该Handler 需要进行Url 访问限制；
               只有用户权限里有这个Handler标记时，才有权限访问
 
-        ctx_param: 当需要进行内容参数权限控制
-                   如： ctx_param = 'project_id',xx?project_id=A;
-                   则访问此Handler 时需要判断用户权限表里project_id 存在A 记录
+        ctx_param: 当需要进行内容参数权限控制,多个内容由','分割
+                   如： ctx_param = 'project_id,sensor_type',xx?project_id=A&sensor_type=STR;
+                   则访问此Handler 时需要判断用户权限表里project_id 存在A 记录, sensor_type 存在STR记录
+
 
         group : 将多个Handler 组成一个权限节点来控制
 

@@ -23,7 +23,7 @@ class IndexFHandler(AccessHandler):
         self.write('hello world')
 
 
-@tor_access.needcheck(url=True, group=aclgroup)
+@tor_access.needcheck(url=True, group=aclgroup,ctx_param='pid')
 @url(r"/fabc")
 class ABCFHandler(AccessHandler):
     def get(self):

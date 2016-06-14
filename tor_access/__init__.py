@@ -43,7 +43,7 @@ class ACLNode(object):
 class ACLGroupNode(ACLNode):
     def __init__(self, intro=None):
         (filename,line_number,function_name,text)=traceback.extract_stack()[-2]
-        self.name = '{0}.{1}.{2}'.format(filename,line_number,text[:text.find('=')].strip())
+        self.name = '{0}.{1}'.format(filename,text[:text.find('=')].strip())
         self.name = self.name.replace(os.getcwd(),'')
         self.name = self.name.replace('/','.')
         self.name = self.name[1:].replace('.py','')

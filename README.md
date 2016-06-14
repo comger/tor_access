@@ -15,7 +15,7 @@ class IndexHandler(tornado.web.RequestHandler):
 
 
 
-aclgroup = tor_access.ACLGroupNode('userdemo',u'系统管理')
+aclgroup = tor_access.ACLGroupNode(u'系统管理')
 
 @tor_access.needcheck(url=True, group=aclgroup)
 class UserHandler(tornado.web.RequestHandler):

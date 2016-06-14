@@ -10,6 +10,8 @@
         b. 支持代码级的角色管理
         c. 支持数据存储级的角色管理
 """
+import os
+import traceback
 import tornado
 from tornado.web import RequestHandler
 from tornado.httpclient import HTTPError
@@ -20,6 +22,13 @@ ACL = dict()
 
 #节点过滤方法
 member_filter = lambda h: isinstance(h, type) and issubclass(h, RequestHandler)
+
+def get_obj_name(obj):
+    lst = [obj]
+    for item in lst:
+        for itemx,itemy in locals().items():
+            if item == itemy and itemx != 'item':
+                return itemx
 
 class ACLNode(object):
     """
@@ -32,8 +41,12 @@ class ACLNode(object):
 
 
 class ACLGroupNode(ACLNode):
-    def __init__(self, name, intro=None):
-        self.name = name
+    def __init__(self, intro=None):
+        (filename,line_number,function_name,text)=traceback.extract_stack()[-2]
+        self.name = '{0}.{1}.{2}'.format(filename,line_number,text[:text.find('=')].strip())
+        self.name = self.name.replace(os.getcwd(),'')
+        self.name = self.name.replace('/','.')
+        self.name = self.name[1:].replace('.py','')
         self.intro = intro or name
         self.handlers = []
 
@@ -142,7 +155,6 @@ def needcheck(**kwargs):
 
     """
     def actual(handler):
-        #import pdb;pdb.set_trace()
         assert(issubclass(handler, tornado.web.RequestHandler))
         handler.__needcheck__ = kwargs
         category = kwargs.get('category',CATEGORY)

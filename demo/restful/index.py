@@ -15,7 +15,23 @@ except:
 from tornado import gen
 from kpages import url, ContextHandler, LogicContext, get_context, service_async
 
-aclgroup = tor_access.ACLGroupNode('userdemo',u'系统管理')
+
+def format_acl(acl):
+    acl_f = {} 
+    for cate, obj in acl.items():
+        if type(obj) == dict:
+            m = {}
+            for key,val in obj.items():
+                m[val.intro] = key
+
+            acl_f[cate] = m
+
+    return acl_f
+            
+
+
+
+aclgroup = tor_access.ACLGroupNode(u'系统管理')
 
 class AccessHandler(tornado.web.RequestHandler):
     def prepare(self):
@@ -29,15 +45,17 @@ class AccessHandler(tornado.web.RequestHandler):
 
 @tor_access.needcheck(url=True, group=aclgroup)
 @url(r"/")
-class IndexHandler(AccessHandler):
+class IndexHandler(tornado.web.RequestHandler):
     def get(self):
         print tor_access.ACL 
-        self.write('hello world')
+
+        self.write(dict(acl=format_acl(tor_access.ACL)))
 
 
 @tor_access.needcheck(url=True, group=aclgroup, ctx_param='pid,mid')
 @url(r"/abc")
 class ABCHandler(AccessHandler):
+    """ 首页"""
     def get(self):
         self.write('abc')
 

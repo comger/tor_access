@@ -41,13 +41,14 @@ class ACLNode(object):
 
 
 class ACLGroupNode(ACLNode):
-    def __init__(self, intro=None):
+    def __init__(self, intro=None, category=None):
         (filename,line_number,function_name,text)=traceback.extract_stack()[-2]
         self.name = '{0}.{1}'.format(filename,text[:text.find('=')].strip())
         self.name = self.name.replace(os.getcwd(),'')
         self.name = self.name.replace('/','.')
         self.name = self.name[1:].replace('.py','')
         self.intro = intro or name
+        self.category = category
         self.handlers = []
 
     def append(self, handler):
@@ -157,17 +158,18 @@ def needcheck(**kwargs):
     def actual(handler):
         assert(issubclass(handler, tornado.web.RequestHandler))
         handler.__needcheck__ = kwargs
-        category = kwargs.get('category',CATEGORY)
-        if not ACL.get(category,None):ACL[category] = {}
-        
         groupnode = kwargs.get('group', None)
 
         if groupnode:
             """ 分组权限 """
+            category = groupnode.category or kwargs.get('category',CATEGORY)
+            if not ACL.get(category,None):ACL[category] = {}
             ACL[category][groupnode.name] = groupnode
             groupnode.append(handler)
             handler.__checkname__ = groupnode.name
         else:
+            category = kwargs.get('category',CATEGORY)
+            if not ACL.get(category,None):ACL[category] = {}
             aclnode = ACLNode(handler)
             ACL[category][aclnode.name] = aclnode
             handler.__checkname__ = aclnode.name
